@@ -1,0 +1,735 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AMR Troubleshooting App</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f4f4f4;
+      padding: 20px;
+    }
+    .container {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      max-width:1500px;
+      margin: auto;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    .step {
+      padding: 10px;
+      background: #e8f0fe;
+      border-left: 5px solid #2196F3;
+      margin-top: 10px;
+    }
+    .hidden {
+      display: none;
+    }
+    button {
+      margin-top: 8px;
+      padding: 10px 20px;
+      font-size: 1rem;
+    }
+    select, input {
+      padding: 10px;
+      width: 95%;
+      margin-top: 10px;
+    }
+    summary {
+      cursor: pointer;
+      font-weight: bold;
+      margin-top: 10px;
+    }
+    details {
+      background: #fdfd96;
+      padding: 10px;
+      margin-top: 10px;
+      border-left: 4px solid #007acc;
+    }
+    .guide-grid {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  margin-bottom: 20px;
+}
+
+.guide-box:hover {
+  transform: scale(1.03);
+}
+    .screen {
+  display: block;
+  padding: 20px;
+}
+
+.hidden {
+  display: none;
+}
+
+.guide-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 20px;
+  justify-content: flex-start;
+}
+
+.guide-box {
+  background: #d0e6ff;
+  padding: 30px;
+  border: 2px solid #2196F3;
+  border-radius: 10px;
+  cursor: pointer;
+  width: 200px;
+  height: 150px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  transition: transform 0.2s;
+}
+
+.guide-box:hover {
+  transform: scale(1.03);
+}
+
+.red-box {
+  background: #ffcccc;
+  border-color: #e53935;
+}
+.yellow-box {
+  background: #fff8c4;
+  border-color:#f1c40f;
+}
+
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>AMR Safety and Troubleshoot Guidelines</h2>
+    
+    
+<div id="screen-main" class="screen">
+  <div class="guide-grid">
+
+<div class="guide-box red-box" onclick="goToScreen('screen-safety')">
+  <h3>AMR Safety Guidelines</h3>
+</div>
+
+<div class="guide-box yellow-box" onclick="goToScreen('screen-operation')">
+  <h3>Understand AMR Operation </h3>
+</div>
+
+<div class="guide-box" onclick="goToScreen('screen-startup')">
+  <h3>AMR Start Up</h3>
+</div>
+
+<div class="guide-box" onclick="goToScreen('screen-shutdown')">
+  <h3>AMR Shut Down</h3>
+</div>
+
+<div class="guide-box" onclick="promptPasswordAndGoTo('screen-caughtskid')">
+  <h3>AMR Caught on skid and delocalized inside P&D (BN58/BN62) </h3>
+</div>
+
+<div class="guide-box" onclick="promptPasswordAndGoTo('screen-nopath')">
+  <h3>No Suitable Path / Localization</h3>
+</div>
+
+<div class="guide-box" onclick="promptPasswordAndGoTo('screen-bs22error')">
+  <h3>AMR "Advanced Error" when leaving P&D</h3>
+</div>
+
+    <!-- Add more boxes below if needed -->
+    <!-- Example:
+    <div class="guide-box" onclick="goToScreen('screen-lockup')">
+      <h3>Dropoff Lockup</h3>
+    </div>
+    -->
+  </div>
+</div>
+    <div id="screen-nopath" class="screen hidden">
+  <button onclick="goToScreen('screen-main')">← Back to Menu</button>
+  <h2>No Suitable Path / Localization</h2>
+  
+      <div class="step">
+        <strong>Step 1:</strong> Wait for Fleet Manager to auto-resolve (may be blocked by another AMR).
+      </div>
+
+      <div class="step">
+        <strong>Step 2:</strong> Does the AMR still need manual help?
+        <select id="manualStep" onchange="showNextStep()">
+          <option value="">-- Select One --</option>
+          <option value="move">Yes – Move Mission</option>
+          <option value="lift">Yes – Lift Up / Down Mission</option>
+          <option value="no">No – It recovered</option>
+        </select>
+      </div>
+
+      <div id="moveSteps" class="hidden">
+        <div class="step"><strong>Move Mission Troubleshooting:</strong></div>
+        <div class="step">2a. Connect with KUKA Studio or manual controller.</div>
+        <div class="step">2b. Move AMR back to the path and ensure proper orientation.</div>
+        <div class="step">2c. Charging port = back. Move backward when lift is down, forward when raised.</div>
+        <div class="step">2d. Switch AMR to Auto Mode. Press flashing Start/Reset buttons.</div>
+        <div class="step">2e. If needed, open Map Monitor to align AMR with path.</div>
+        <div class="step">3. Switch to Auto Mode – lift should move if close enough to node.</div>
+        <div class="step">4. If still error, recheck localization and reset again.</div>
+      </div>
+
+      <div id="liftSteps" class="hidden">
+        <div class="step"><strong>Lift Up / Down Mission Troubleshooting:</strong></div>
+        <div class="step">1. Connect to AMR.</div>
+        <div class="step">2. Verify localization – reset if needed.</div>
+        
+        <details>
+  <summary>📌 How to Localize an AMR</summary>
+  <ol>
+    <li>
+      Connect to the AMR via its IP address using KUKA Studio.
+      <br><img src="L1.png" alt="KUKA Studio Connection" width="20%">
+    </li>
+    <li>
+      On the Controller Tab, click <strong>Force DebugMode</strong> to take the AMR offline.
+      <br><img src="L2.png" alt="Force DebugMode" width="20%">
+    </li>
+    <li>
+      Click on the <strong>Navigation</strong> Tab at the top.
+      <br><img src="L3.png" alt="Navigation Tab" width="20%">
+    </li>
+    <li>
+      Choose the <strong>Localization</strong> page on the left.
+      <br><img src="L4.png" alt="Localization Page" width="20%">
+    </li>
+    <li>
+      Click <strong>Refresh Map</strong> and wait for it to load to 100%. Click OK once it completes.
+      <br><img src="L5.png" alt="Refresh Map" width="28%">
+    </li>
+    <li>
+      If an error appears about the missing map file, click <strong>Cancel</strong> to ignore.
+      <br><img src="L6.png" alt="Map Not Found Error" width="20%">
+    </li>
+    <li>
+      Red spots will appear showing the current localization.
+      <br><img src="L7.png" alt="Red Localization Spots" width="20%">
+    </li>
+    <li>
+  Click where the AMR is physically located, drag the black arrow toward the front.
+
+  <div style="margin-top:10px;">
+    <label for="amr-location"><strong>Where are you currently located?</strong></label>
+    <select id="amr-location" onchange="showLocationSteps()" style="padding: 6px; width: 100%; margin-top: 5px;">
+      <option value="">-- Select Location --</option>
+      <option value="edock">E-dock</option>
+      <option value="gso">GSO</option>
+      <option value="mainaisle">Main Aisle</option>
+      <option value="shippingdock">Shipping Dock</option>
+      <option value="intersection">Intersection</option>
+    </select>
+  </div>
+
+  <div id="location-steps" style="margin-top: 15px;"></div>
+
+</li>
+    <li>
+      Use arrows and rotation tools in the top-right to align black spots with the map.
+      <br><img src="L8.png" alt="Align Features" width="20%">
+    </li>
+    <li>
+      Click <strong>Initialize</strong> to send the updated position. Click OK when it hits 100%.
+      <br><img src="L9.png" alt="Initialize Localization" width="20%">
+    </li>
+    <li>
+      Return to the Controller Tab and click <strong>Restore AutoMode</strong>. Confirm in Map Monitor.
+      <br><img src="L10.png" alt="Restore AutoMode" width="20%">
+    </li>
+  </ol>
+</details>
+</div>
+<div id="noSteps" class="step hidden" style="border-left-color: #4CAF50;">
+  ✅ AMR recovered on its own. No further action needed.
+</div>
+
+
+    <div id="noMatch" class="step hidden" style="border-left-color: #f44336;">
+  ❌ Fault not recognized. Please check the error or escalate if unsure.
+      </div> 
+       
+</div> 
+
+<div id="screen-bs22error" class="screen hidden">
+  <button onclick="goToScreen('screen-main')">← Back to Menu</button>
+  <h2>AMR "Advanced Error" leaving P&D rack</h2>
+
+  <div class="step"><strong>Step 1:</strong>Connect to the AMR using KUKA Studio.
+ <br><img src="L1.png" alt="Autopark" style="margin-top: 8px; width: 300px;"></div>
+  <div class="step"><strong>Step 2:</strong>Click <strong>Force DebugMode</strong> to use the manual controller. If unable to use the manual controller, use the AMR key to brake release the AMR.
+ <br><img src="L2.png" alt="Autopark" style="margin-top: 8px; width: 300px;"></div>
+  <div class="step"><strong>Step 3:</strong>Move the AMR forward to a spot on its current travel path. See image for an example
+<br><img src="M1.png" alt="Autopark" style="margin-top: 8px; width: 300px;"></div>
+  <div class="step"><strong>Step 4:</strong> Go back to the Controller tab and click <strong>Restore AutoMode</strong> to switch the AMR back into auto mode. It should continue with its current job. 
+ <br><img src="L10.png" alt="Autopark" style="margin-top: 8px; width: 300px;"></div>
+</div>
+
+<div id="screen-shutdown" class="screen hidden">
+  <button onclick="goToScreen('screen-main')">← Back to Menu</button>
+  <h2>AMR Shut Down</h2>
+
+  <div class="step"><strong>Step 1:</strong> In Kuka Fleet, in Settings tab, turn off <strong>Auto park mission</strong> then click <strong>Update</strong>
+  <br><img src="SD1.png" alt="Autopark" style="margin-top: 8px; width: 500px;"></div>
+  <div class="step"><strong>Step 2:</strong> In Kuka Fleet, click an AMR in the map (you can start with AMR 1)
+  <br><img src="SD2.png" alt="Autopark" style="margin-top: 8px; width: 450px;"></div>
+  <div class="step"><strong>Step 3:</strong> In the AMR pop up window, click the <strong>Move</strong> option.
+  <br><img src="SD3.png" alt="Autopark" style="margin-top: 8px; width: 300px;"></div>
+  <div class="step"><strong>Step 4:</strong> Click on the node you want the AMR(1-6) to park for charging. Note that each Charger is labeled with a number sticker that shows which charger is assigned to each AMR.
+  <br><img src="SD4.png" alt="Autopark" style="margin-top: 8px; width: 500px;"></div> 
+  
+<div class="step" style="margin-left: 20px;">a. Send AMR 1 to node 389.Press <strong>Dispatch Mission</strong></div>
+<div class="step" style="margin-left: 20px;">b. Send AMR 2 to node 388.Press <strong>Dispatch Mission</strong></div>
+<div class="step" style="margin-left: 20px;">c. Send AMR 3 to node 387.Press <strong>Dispatch Mission</strong></div>
+<div class="step" style="margin-left: 20px;">d. Send AMR 4 to node 386.Press <strong>Dispatch Mission</strong></div>
+<div class="step" style="margin-left: 20px;">d. Send AMR 5 to node 385.Press <strong>Dispatch Mission</strong></div>
+<div class="step" style="margin-left: 20px;">d. Send AMR 6 to node 384.Press <strong>Dispatch Mission</strong></div>
+
+ <div class="step"><strong>Step 5:</strong>When the AMR arrives to the charging nodes, Plug in the charger. Wait for the light on the charging block to illuminate a solid red light this means the charging has started. If it doesn’t illuminate solid red, unplug the charger from the outlet and plug it back in again.
+ <br><img src="SD5.png" alt="Autopark" style="margin-top: 8px; width: 300px;"></div> 
+ <div class="step"><strong>Step :</strong>Press and release the standby button the AMR will shutdown.
+ <br><img src="SD6.png" alt="Autopark" style="margin-top: 8px; width: 300px;"></div>
+</div>
+
+<div id="screen-startup" class="screen hidden">
+  <button onclick="goToScreen('screen-main')">← Back to Menu</button>
+  <h2>AMR Start Up</h2>
+
+  <div class="step"><strong>Step 1:</strong> Unplug the AMR from its charger.
+  <br><img src="S1.png" alt="Unplug AMR" style="margin-top: 8px; width: 300px;">
+  </div>
+
+<div class="step"><strong>Step 2:</strong> Wipe down the cameras and lasers, only use Micro Care ESD cleaning wipes available in the tool crib.
+<br><img src="S1a.png" alt="Wipe AMR" style="margin-top: 8px; width: 300px;">
+  <br><img src="S1b.png" alt="Wipe AMR" style="margin-top: 8px; width: 300px;">
+  <br><img src="S1c.png" alt="WipeAMR" style="margin-top: 8px; width: 300px;"></div>
+
+<div class="step"><strong>Step 3:</strong> Press the Stand-by Button (it should lock into place). Wait for the AMR to boot up and connect to the server — should take 30–60 seconds.
+<br><img src="S2.png" alt="Button AMR" style="margin-top: 8px; width: 300px;">
+</div>
+
+<div class="step"><strong>Step 4:</strong> When the start button illuminates and starts FLASHING, press it in and release (it should turn solid white or blue).</div>
+<br><img src="S3.png" alt="Button AMR" style="margin-top: 8px; width: 300px;">
+
+<div class="step"><strong>Step 5:</strong> In KUKA Studio → Select the AMR's IP address → Put AMR into Debug mode → Click <strong>Int Hardware</strong> (let it run through the systems check until the CMD status says "Done") → Press <strong>Restore Automode</strong>.
+<br><img src="L1.png" alt="IP AMR" style="margin-top: 8px; width: 300px;">
+<br><img src="L2.png" alt="Debug AMR" style="margin-top: 8px; width: 300px;">
+<br><img src="S4.png" alt="Hardware AMR" style="margin-top: 8px; width: 300px;">
+<br><img src="L10.png" alt="Automode" style="margin-top: 8px; width: 300px;">
+</div>
+
+<div class="step"><strong>Step 6:</strong> In KUKA Fleet → Go to Settings → Turn on <strong>Auto Park Mission</strong> → Click <strong>Update</strong> (The AMRs should start to move to their parking locations).
+<br><img src="S5.png" alt="Automode" style="margin-top: 8px; width: 500px;">
+</div>
+</div>
+
+
+<div id="screen-caughtskid" class="screen hidden">
+  <button onclick="goToScreen('screen-main')">← Back to Menu</button>
+  <h3>AMR Caught on skid and delocalized inside P&D (BN58/BN62)</h3>
+
+  <div class="step"><strong>Step 1:</strong>In Kuka Studio, connect to the AMR and click </strong>Force DebugMode</strong> to put the AMR into debug mode.
+<br><img src="L1.png" alt="Automode" style="margin-top: 8px; width: 300px;"> 
+<br><img src="L2.png" alt="Automode" style="margin-top: 8px; width: 300px;"></div>
+  <div class="step"><strong>Step 2:</strong>Have a hilo remove the load sitting on the P&D rack. </div>
+  <div class="step"><strong>Step 3:</strong>Manually move AMR back to the approach node (orange sticker on the floor)</div>
+  <div class="step"><strong>Step 4:</strong>Relocalize the AMR </div>
+  <div class="step"><strong>Step 5:</strong> Once the position is set and has been updated on the AMR, click </strong>Restore AutoMode</strong> on the controller tab to turn the AMR back online. </div>
+ 
+</div>
+
+
+
+<div id="screen-safety" class="screen hidden">
+  <button onclick="goToScreen('screen-main')">← Back to Menu</button>
+  <h2>AMR Safety Guidelines</h2>
+
+  <!-- Tabs -->
+  <div id="safety-tab-buttons" style="margin-top: 15px; margin-bottom: 10px;">
+    <button onclick="revealTab('safety')" id="tab-safety" style="padding: 10px;">AMR Built-in Safety Features</button>
+<button onclick="revealTab('lights')" id="tab-lights" style="padding: 10px; margin-right: 10px;"> What AMR Light Colors Indicate </button>
+  </div>
+
+  <!-- Tab Content -->
+  <div id="tab-content-lights" class="tab-section hidden">
+    <div class="step"><strong>FLASHING GREEN🟢 </strong> AMR is in motion. Stay clear of its path; it may not stop in time if you cut in front.
+<br><img src="LFG.jpg" alt="IP AMR" style="margin-top: 8px; width: 300px;"></div>
+    <div class="step"><strong>SOLID GREEN🟢:</strong> AMR is stationary. 
+<br><img src="LG.jpg" alt="IP AMR" style="margin-top: 8px; width: 300px;"></div>
+    <div class="step"><strong>FLASHING YELLOW/WHITE🟡:</strong> AMR is in its docking process.Safety field is reduced, therefore avoid standing directly in front of or behind the AMR — it won’t detect people or obstacles close to it during docking.
+<br><img src="LY.jpg" alt="IP AMR" style="margin-top: 8px; width: 300px;"> </div>
+    <div class="step"><strong>RED🔴:</strong> Safety scanners are faulted. Check for any object blocking the scan field. Remove the obstruction, and the AMR will resume after a few seconds.
+<br><img src="LR.jpg" alt="IP AMR" style="margin-top: 8px; width: 300px;"></div>
+    <div class="step"><strong>PURPLE🟣 :</strong> Cameras are detecting an obstacle.Stop and check the area — Remove the obstacle, and the AMR will resume after a few seconds.
+<br><img src="LP.jpg" alt="IP AMR" style="margin-top: 8px; width: 300px;"></div>
+<div class="step"><strong>LIGHTS OFF :</strong> AMR is idle and waiting for next mission.
+<br><img src="NL.jpg" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+
+  </div>
+
+  <div id="tab-content-safety" class="tab-section hidden">
+    <div class="step"><strong>360° Detection:</strong> Safety scanners and 3D cameras on the front and rear provide full obstacle coverage around the AMR.
+<br><img src="S1a.png" alt=" AMR" style="margin-top: 8px; width: 300px;">
+<br><img src="S1b.png" alt=" AMR" style="margin-top: 8px; width: 300px;">
+</div>
+    <div class="step"><strong>Detection Height Limit:</strong> Scanners only detect objects exactly 6.5 inches above the ground — anything higher or lower is not detected
+<br><img src="SF2.png" alt=" AMR" style="margin-top: 8px; width: 300px;">
+<br><img src="SF1.png" alt=" AMR" style="margin-top: 8px; width: 500px;"></div>
+    <div class="step"><strong>Automatic Stop:</strong> If an object enters the scan field, the AMR automatically stops. It resumes a few seconds after the obstacle is removed.
+<br><img src="SF3.png" alt=" AMR" style="margin-top: 8px; width: 500px;"></div>
+    <div class="step"><strong>Scan Field Size During Loaded</strong> Largest detection zone. Covers the skid (62”x92”) plus 44” in front and 8” on each side. AMR drives forward.
+<br><img src="SF4.png" alt=" AMR" style="margin-top: 8px; width: 300px; height: 450px;"></div>
+    <div class="step"><strong>Scan Field Size During Unloaded:</strong> Smaller zone for the empty AMR. Includes 44” behind and 8” on each side. AMR drives backward.
+<br><img src="SF5.png" alt=" AMR" style="margin-top: 8px; width: 300px; height: 450px;"></div>
+    <div class="step"><strong>Scan Field Size During Docking/Charging:</strong>Detection zone is tight, just slightly larger than the AMR body.
+<br><img src="SF6.png" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+  </div>
+</div>
+
+
+<div id="screen-operation" class="screen hidden">
+  <button onclick="goToScreen('screen-main')">← Back to Menu</button>
+  <h2>Understand AMR Operation</h2>
+
+  <!-- Tabs -->
+  <div id="operation-tab-buttons" style="margin-top: 15px; margin-bottom: 10px;">
+    <button onclick="showOperationTab('team')" id="tab-team" style="padding: 10px;">Team-Specific AMR Designations</button>
+    <button onclick="showOperationTab('charging')" id="tab-charging" style="padding: 10px;">AMR Charging Strategy</button>
+    <button onclick="showOperationTab('pick')" id="tab-pick" style="padding: 10px;">Pick Up Process</button>
+    <button onclick="showOperationTab('drop')" id="tab-drop" style="padding: 10px;">Drop Off Process</button>
+  </div>
+
+  <!-- Tab Content -->
+  <div id="tab-content-team" class="tab-section hidden">
+    <div class="step"><strong>1.</strong> AMR 1 & AMR 2 are assigned to Team 6. </div>
+    <div class="step"><strong>2.</strong> AMR 5 & AMR 6 are assigned to Team 5.</div>
+    <div class="step"><strong>3.</strong> AMR 3 & AMR 4 are shared between Team 5 and Team 6.</div>
+<div class="step"><strong>IMPORTANT NOTE.</strong> Each AMR is linked to specific pickup and drop-off racks that correspond to the assigned team’s area.
+⚠️ Note: AMRs cannot be forced to complete jobs for an unassigned team. If the job is not designated for that AMR’s configured team, it will not run.</div>
+      </div>
+
+
+<div id="tab-content-charging" class="tab-section hidden">
+  <div class="step">
+    <label for="chargingShift"><strong>Select Shift:</strong></label>
+    <select id="chargingShift" onchange="showChargingSteps()" style="width: 300px; margin-top: 5px;">
+      <option value="">-- Choose a Shift --</option>
+      <option value="shift1">1st Shift</option>
+      <option value="shift2">2nd Shift</option>
+      <option value="shift3">3rd Shift</option>
+    </select>
+  </div>
+
+  <!-- Shift 1 -->
+  <div id="shift1Steps" class="hidden">
+    <div class="step"><strong>1.</strong> During the day, Auto Charge is enabled. All AMRs will move to the charging station during breaks.</div>
+    <div class="step"><strong>2.</strong>At the end of the day, if the AMRs are already above 80–85% SOC, do not need to plug them in; simply power them off.</div>
+  </div>
+
+  <!-- Shift 2 -->
+  <div id="shift2Steps" class="hidden">
+    <div class="step"><strong>1.</strong> TBD</div>
+     </div>
+
+  <!-- Shift 3 -->
+  <div id="shift3Steps" class="hidden">
+    <div class="step"><strong>1.</strong> Currently, AMRs 1, 2, and 3 are configured for auto charging during break periods. </div> 
+    <div class="step"><strong>2.</strong> AMR 4 is not set up to auto charge at this time. Please ensure that only AMRs 1, 2, and 3 are used during breaks to maintain proper charging behavior.</div>
+  
+</div>
+</div>
+
+  <div id="tab-content-pick" class="tab-section hidden">
+    <div class="step"><strong>Step 1:</strong> The operator uses the interface to send a job. A virtual container is created and reserved on the pickup rack.
+<br><img src="P1.png" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+    <div class="step"><strong>Step 2:</strong> That pickup location becomes locked and cannot accept new work until an AMR completes the task.</div>
+    <div class="step"><strong>Step 3:</strong> WHen an AMR is free, it will drive to the pick up rack. Before enter inside the rack, it will pause on the approach node and uses its scanners to detect the reflectors on the rack. AMR then switches safety field set to docking configuration and you will see the LEDs begin flashing yellow.
+<br><img src="P2A.png" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+    <div class="step"><strong>Step 4:</strong> AMR drives into the rack and raises its lift once underneath the load.
+<br><img src="p3.png" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+    <div class="step"><strong>Step 5:</strong> AMR moves back out to the pickup approach node with the load on top of it.
+<br><img src="P4.jpg" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+<div class="step"><strong>Step 6:</strong> AMR switches safety field set to the loaded configuration (flashing green) and begins moving to it’s drop off destination.
+<br><img src="P5.jpg" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+</div>
+
+  <div id="tab-content-drop" class="tab-section hidden">
+    <div class="step"><strong>Step 1:</strong> AMR arrives at drop off approach node at the shipping dock's P&D.
+<br><img src="DO2.jpg" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+    <div class="step"><strong>Step 2:</strong> AMR pauses to wait for feedback from sensor that there is no skid present on the drop off rack. The AMR will sit here and continue to query the sensor until it is cleared.
+<br><img src="DO1.jpg" alt=" AMR" style="margin-top: 8px; width: 300px;">
+<br><img src="DOS.png" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+    <div class="step"><strong>Step 3:</strong> After confirming the rack is free, the AMR will rotate to face the rack and pause to detect the reflectors on the rack legs.AMR switches safety field set to docking configuration and LEDs begin flashing yellow and white.
+<br><img src="DO3.jpg" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+    <div class="step"><strong>Step 4:</strong> AMR drives into the rack and lowers its lift once inside.
+<br><img src="DO5.png" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+    <div class="step"><strong>Step 5:</strong> AMR moves back out to the pickup approach node after placing the load on the rack.
+<br><img src="DO6.jpg" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+ <div class="step"><strong>Step 6:</strong> AMR switches safety field set to the default configuration and begins any queued jobs, goes to connect to a charger, or moves back to its park position.
+<br><img src="DO7.jpg" alt=" AMR" style="margin-top: 8px; width: 300px;"></div>
+
+  </div>
+</div>
+
+<script>
+function promptPasswordAndGoTo(screenId) {
+  const password = prompt("Enter password to access this section:");
+  const correctPassword = "amr123"; // Change this to your desired password
+
+  if (password === correctPassword) {
+    goToScreen(screenId);
+  } else if (password !== null) {
+    alert("Incorrect password.");
+  }
+}
+</script>
+
+<script>
+function showOperationTab(tab) {
+  const tabs = ['team', 'pick', 'drop', 'charging'];
+
+  tabs.forEach(t => {
+    document.getElementById('tab-content-' + t).classList.add('hidden');
+    document.getElementById('tab-' + t).style.background = '';
+  });
+
+  document.getElementById('tab-content-' + tab).classList.remove('hidden');
+  document.getElementById('tab-' + tab).style.background = '#d0e6ff';
+}
+</script>
+
+
+<script>
+function revealTab(tab) {
+  // Hide both content sections
+  document.getElementById('tab-content-lights').classList.add('hidden');
+  document.getElementById('tab-content-safety').classList.add('hidden');
+
+  // Clear tab button highlights
+  document.getElementById('tab-lights').style.background = '';
+  document.getElementById('tab-safety').style.background = '';
+
+  // Show selected tab content
+  if (tab === 'lights') {
+    document.getElementById('tab-content-lights').classList.remove('hidden');
+    document.getElementById('tab-lights').style.background = '#d0e6ff';
+  } else {
+    document.getElementById('tab-content-safety').classList.remove('hidden');
+    document.getElementById('tab-safety').style.background = '#d0e6ff';
+  }
+}
+</script>
+
+<script>
+function showTab(tab) {
+  document.getElementById('tab-content-general').classList.add('hidden');
+  document.getElementById('tab-content-sa
+
+
+ <script>
+function checkError() {
+  const input = document.getElementById("errorInput").value.toLowerCase();
+
+  const isPlanningError = input.includes("planning_error") || input.includes("no suitable path");
+  const isStuckAtNode = input.includes("stuck") || input.includes("stuck_at_node");
+  const isLockupDropoff = input.includes("lockup") || input.includes("dropoff");
+
+  document.getElementById("planningErrorFlow").classList.toggle("hidden", !isPlanningError);
+  document.getElementById("stuckAtNodeFlow")?.classList.toggle("hidden", !isStuckAtNode);
+  document.getElementById("lockupDropoffFlow").classList.toggle("hidden", !isLockupDropoff);
+
+  const noMatch = !(isPlanningError || isStuckAtNode || isLockupDropoff);
+  document.getElementById("noMatch").classList.toggle("hidden", !noMatch);
+
+  if (document.getElementById("manualStep")) {
+    document.getElementById("manualStep").value = "";
+    document.getElementById("moveSteps").classList.add("hidden");
+    document.getElementById("liftSteps").classList.add("hidden");
+    document.getElementById("noSteps").classList.add("hidden");
+  }
+}
+   function showGuide(flowId) {
+  // Hide all flows first
+  document.getElementById("planningErrorFlow").classList.add("hidden");
+  document.getElementById("lockupDropoffFlow").classList.add("hidden");
+  document.getElementById("stuckAtNodeFlow")?.classList.add("hidden");
+  document.getElementById("noMatch").classList.add("hidden");
+
+  // Reset manual steps if applicable
+  if (document.getElementById("manualStep")) {
+       document.getElementById("moveSteps").classList.add("hidden");
+    document.getElementById("liftSteps").classList.add("hidden");
+    document.getElementById("noSteps").classList.add("hidden");
+  }
+
+  // Show selected guide
+  document.getElementById(flowId).classList.remove("hidden");
+}
+
+function showNextStep() {
+  const value = document.getElementById("manualStep").value;
+  console.log("Selected value:", value);  // ✅ Debug line
+
+  document.getElementById("moveSteps").classList.add("hidden");
+  document.getElementById("liftSteps").classList.add("hidden");
+  document.getElementById("noSteps").classList.add("hidden");
+
+  if (value === "move") {
+    document.getElementById("moveSteps").classList.remove("hidden");
+  } else if (value === "lift") {
+    document.getElementById("liftSteps").classList.remove("hidden");
+  } else if (value === "no") {
+    document.getElementById("noSteps").classList.remove("hidden");
+  }
+}
+</script>
+  <script>
+function showGuide(flowId) {
+  // Hide main menu
+  document.getElementById("mainMenu").classList.add("hidden");
+
+  // Hide all flows
+  const flows = ["planningErrorFlow", "lockupDropoffFlow", "stuckAtNodeFlow"];
+  flows.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add("hidden");
+  });
+
+  // Show selected section
+  document.getElementById(flowId).classList.remove("hidden");
+
+  // Reset dropdowns if needed
+  const manualStep = document.getElementById("manualStep");
+  if (manualStep) {
+    manualStep.value = "";
+    document.getElementById("moveSteps").classList.add("hidden");
+    document.getElementById("liftSteps").classList.add("hidden");
+    document.getElementById("noSteps").classList.add("hidden");
+  }
+}
+
+function goBack() {
+  // Show main menu again
+  document.getElementById("mainMenu").classList.remove("hidden");
+
+  // Hide all guide sections
+  const flows = ["planningErrorFlow", "lockupDropoffFlow", "stuckAtNodeFlow"];
+  flows.forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.classList.add("hidden");
+  });
+}
+function goToScreen(screenId) {
+  const screens = document.querySelectorAll('.screen');
+  screens.forEach(s => s.classList.add('hidden'));
+
+  const target = document.getElementById(screenId);
+  if (target) target.classList.remove('hidden');
+
+  window.scrollTo(0, 0); // optional: scroll to top on screen change
+}
+</script>
+  <script>
+function showLocationSteps() {
+  const location = document.getElementById("amr-location").value;
+  const container = document.getElementById("location-steps");
+
+  let instructions = "";
+
+  switch (location) {
+    case "edock":
+      instructions = `
+        <div class="step">📍 E-dock Tip 1: Move the AMR so it's sitting on top of the green dot at your area.</div>
+        <div class="step">📍 E-dock Tip 2: Click where the AMR is physically located (see the image below), drag the black arrow that appears towards the forward direction of the AMR.
+.</div>
+      `;
+      break;
+    case "gso":
+      instructions = `
+        <div class="step">📍 GSO Tip 1: Move the AMR so it's sitting on top of the green dot at your area.</div>
+
+        <div class="step">📍 GSO Tip 2: Click where the AMR is physically located (see the image below), drag the black arrow that appears towards the forward direction of the AMR.
+         <br><img src="D3.png" alt="Shipping Dock Tip 1" style="margin-top: 8px; width: 300px;">
+         <br><img src="D4.png" alt="Shipping Dock Tip 1" style="margin-top: 8px; width: 300px;">
+</div>
+      `;
+      break;
+    case "mainaisle":
+      instructions = `
+        <div class="step">📍 Main Aisle Tip 1: Move the AMR so it's sitting on top of the green dot at your area.</div>
+        <div class="step">📍 Main Aisle Tip 2: Click where the AMR is physically located (see the image below), drag the black arrow that appears towards the forward direction of the AMR.
+</div>
+      `;
+      break;
+    case "shippingdock":
+      instructions = `
+        <div class="step">📍 Shipping Dock Tip 1: Move the AMR so it's sitting on top of the green dot at your area.
+        <br><img src="D1.jpg" alt="Shipping Dock Tip 1" style="margin-top: 8px; width: 200px;">
+</div>
+        <div class="step">📍 Shipping Dock Tip 2: Click where the AMR is physically located (see the image below), drag the black arrow that appears towards the forward direction of the AMR.
+        <br><img src="D2.png" alt="Shipping Dock Tip 2" style="margin-top: 8px; width: 450px;">
+</div>
+      `;
+      break;
+    case "intersection":
+      instructions = `
+        <div class="step">📍 Intersection Tip 1: Move the AMR so it's sitting on top of the green dot at your area.
+</div>
+        <div class="step">📍 Intersection Tip 2:Click where the AMR is physically located (see the image below), drag the black arrow that appears towards the forward direction of the AMR.
+</div>
+      `;
+      break;
+    default:
+      instructions = "";
+  }
+
+  container.innerHTML = instructions;
+}
+</script>
+<script>
+function showNextStep() {
+  const value = document.getElementById("manualStep").value;
+
+  // Hide all first
+  document.getElementById("moveSteps").classList.add("hidden");
+  document.getElementById("liftSteps").classList.add("hidden");
+  document.getElementById("noSteps").classList.add("hidden");
+
+  // Show based on selection
+  if (value === "move") {
+    document.getElementById("moveSteps").classList.remove("hidden");
+  } else if (value === "lift") {
+    document.getElementById("liftSteps").classList.remove("hidden");
+  } else if (value === "no") {
+    document.getElementById("noSteps").classList.remove("hidden");
+  }
+}
+</script>
+
+<script>
+  function showChargingSteps() {
+    const shift = document.getElementById("chargingShift").value;
+
+    // Hide all first
+    document.getElementById("shift1Steps").classList.add("hidden");
+    document.getElementById("shift2Steps").classList.add("hidden");
+    document.getElementById("shift3Steps").classList.add("hidden");
+
+    // Show selected
+    if (shift === "shift1") {
+      document.getElementById("shift1Steps").classList.remove("hidden");
+    } else if (shift === "shift2") {
+      document.getElementById("shift2Steps").classList.remove("hidden");
+    } else if (shift === "shift3") {
+      document.getElementById("shift3Steps").classList.remove("hidden");
+    }
+  }
+</script>
+</body>
+</html>
